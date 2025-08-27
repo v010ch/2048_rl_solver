@@ -8,16 +8,6 @@ from . import logic
 from . import constants as c
 
 
-def gen() -> int:
-    '''
-    Generate a random number to use as the position of the new element
-
-    return:
-        int - random number
-    '''
-    return random.randint(0, c.GRID_LEN - 1)
-
-
 class GameGrid(Frame):
     '''
     '''
@@ -30,6 +20,7 @@ class GameGrid(Frame):
         # self.master.bind("<Key>", self.key_down)
         self.master.bind("<KeyRelease>", self.key_up)
 
+        # set up methoda for key release event handler
         self.commands = {
             c.KEY_UP: logic.up,
             c.KEY_DOWN: logic.down,
@@ -43,7 +34,7 @@ class GameGrid(Frame):
 
         self.grid_cells = []
         self.init_grid()
-        self.matrix = logic.new_game(self.GRID_SIZE)
+        self.state = logic.new_game(self.GRID_SIZE)
         self.history_matrixs = []
         self.update_grid_cells()
 
@@ -89,7 +80,7 @@ class GameGrid(Frame):
         '''
         for i in range(self.GRID_SIZE):
             for j in range(self.GRID_SIZE):
-                new_number = self.matrix[i][j]
+                new_number = self.state[i][j]
                 if new_number == 0:
                     self.grid_cells[i][j].configure(text="", bg=c.BG_COLOR_CELL_EMPTY)
                 else:
@@ -109,27 +100,19 @@ class GameGrid(Frame):
             exit()
 
         if key == c.KEY_BACK and len(self.history_matrixs) > 1:
-            self.matrix = self.history_matrixs.pop()
+            self.state = self.history_matrixs.pop()
             self.update_grid_cells()
             print('back on step total step:', len(self.history_matrixs))
         elif key in self.commands:
-            self.matrix, done = self.commands[key](self.matrix)
+            self.state, done = self.commands[key](self.state)
             if done:
-                self.matrix = logic.add_new(self.matrix)
+                self.state = logic.add_new(self.state)
                 # record last move
-                self.history_matrixs.append(self.matrix)
+                self.history_matrixs.append(self.state)
                 self.update_grid_cells()
-                if logic.game_state(self.matrix) == 'win':
+                if logic.game_state(self.state) == 'win':
                     self.grid_cells[1][1].configure(text="You", bg=c.BG_COLOR_CELL_EMPTY)
                     self.grid_cells[1][2].configure(text="Win!", bg=c.BG_COLOR_CELL_EMPTY)
-                if logic.game_state(self.matrix) == 'lose':
+                if logic.game_state(self.state) == 'lose':
                     self.grid_cells[1][1].configure(text="You", bg=c.BG_COLOR_CELL_EMPTY)
                     self.grid_cells[1][2].configure(text="Lose!", bg=c.BG_COLOR_CELL_EMPTY)
-
-    #def generate_next(self):
-    #    index = (gen(), gen())
-    #    while self.matrix[index[0]][index[1]] != 0:
-    #        index = (gen(), gen())
-    #    self.matrix[index[0]][index[1]] = 2
-
-# game_grid = GameGrid()

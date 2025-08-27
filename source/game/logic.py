@@ -1,8 +1,8 @@
 '''
 '''
 
-import numpy as np
 import random
+import numpy as np
 
 import constants as c
 
@@ -63,19 +63,9 @@ def add_new(state: np.ndarray) -> np.ndarray:
 def game_state(state: np.ndarray) -> str:
     '''
     '''
-    # check for win cell
-    # for i in range(mat.shape[0]):
-    #     for j in range(mat.shape[0]):
-    #         if mat[i, j] == 2048:
-    #             return 'win'
     if state.max() >= 2048:
         return 'win'
 
-    # check for any zero entries
-    # for i in range(mat.shape[0]):
-    #    for j in range(mat.shape[0]):
-    #        if mat[i, j] == 0:
-    #            return 'not over'
     nz = np.count_nonzero(state)
     if nz != c.MAX_EL:
         return 'not over'
@@ -102,12 +92,6 @@ def game_state(state: np.ndarray) -> str:
 def cover_up(state: np.ndarray):
     '''
     '''
-    # new = []
-    # for j in range(c.GRID_LEN):
-    #     partial_new = []
-    #     for i in range(c.GRID_LEN):
-    #         partial_new.append(0)
-    #     new.append(partial_new)
     new = np.zeros((c.GRID_LEN, c.GRID_LEN), dtype=np.uint16)
 
     done = False
@@ -156,12 +140,10 @@ def up(state: np.ndarray) -> tuple[np.ndarray, bool]:
         np.ndarray - new game state
     '''
     # print("up")
-    #game = transpose(game)
     state = np.transpose(state)
     state, done = cover_up(state)
     state, done = merge(state, done)
     state = cover_up(state)[0]
-    #game = transpose(game)
     state = np.transpose(state)
 
     return state, done
@@ -178,12 +160,10 @@ def down(state: np.ndarray) -> tuple[np.ndarray, bool]:
         np.ndarray - new game state
     '''
     # print("down")
-    #game = reverse(transpose(game))
     state = np.flip(np.transpose(state), axis=1)
     state, done = cover_up(state)
     state, done = merge(state, done)
     state = cover_up(state)[0]
-    #game = transpose(reverse(game))
     state = np.transpose(np.flip(state, axis=1))
 
     return state, done
@@ -218,12 +198,10 @@ def right(state: np.ndarray) -> tuple[np.ndarray, bool]:
         np.ndarray - new game state
     '''
     # print("right")
-    #game = reverse(game)
     state = np.flip(state, axis=1)
     state, done = cover_up(state)
     state, done = merge(state, done)
     state = cover_up(state)[0]
-    #game = reverse(game)
     state = np.flip(state, axis=1)
 
     return state, done
