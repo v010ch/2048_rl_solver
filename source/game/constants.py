@@ -1,11 +1,12 @@
 SIZE = 400
 GRID_LEN = 4
 GRID_PADDING = 10
+MAX_EL = GRID_LEN**2 
 
-BACKGROUND_COLOR_GAME = "#92877d"
-BACKGROUND_COLOR_CELL_EMPTY = "#9e948a"
+BG_COLOR_GAME = "#92877d"
+BG_COLOR_CELL_EMPTY = "#9e948a"
 
-BACKGROUND_COLOR_DICT = {
+BG_COLOR_DICT = {
 2:      "#eee4da",
 4:      "#ede0c8",
 8:      "#f2b179",
@@ -43,7 +44,7 @@ CELL_COLOR_DICT = {
 65536:  "#f9f6f2",
 }
 
-FONT = ("Verdana",40,"bold")
+FONT = ("Verdana", 40, "bold")
 
 KEY_QUIT = "Escape"
 KEY_BACK = "b"
