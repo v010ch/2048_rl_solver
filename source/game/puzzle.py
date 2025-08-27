@@ -8,17 +8,27 @@ from . import logic
 from . import constants as c
 
 
-def gen():
+def gen() -> int:
+    '''
+    Generate a random number to use as the position of the new element
+
+    return:
+        int - random number
+    '''
     return random.randint(0, c.GRID_LEN - 1)
 
+
 class GameGrid(Frame):
+    '''
+    '''
     def __init__(self):
         Frame.__init__(self)
 
         self.GRID_SIZE = c.GRID_LEN
         self.grid()
         self.master.title('2048')
-        self.master.bind("<Key>", self.key_down)
+        # self.master.bind("<Key>", self.key_down)
+        self.master.bind("<KeyRelease>", self.key_up)
 
         self.commands = {
             c.KEY_UP: logic.up,
@@ -39,7 +49,9 @@ class GameGrid(Frame):
 
         # self.mainloop()
 
-    def init_grid(self):
+    def init_grid(self) -> None:
+        '''
+        '''
         background = Frame(self, bg=c.BG_COLOR_GAME,
                            width=c.SIZE, height=c.SIZE,
                            )
@@ -72,7 +84,9 @@ class GameGrid(Frame):
                 grid_row.append(t)
             self.grid_cells.append(grid_row)
 
-    def update_grid_cells(self):
+    def update_grid_cells(self) -> None:
+        '''
+        '''
         for i in range(self.GRID_SIZE):
             for j in range(self.GRID_SIZE):
                 new_number = self.matrix[i][j]
@@ -86,7 +100,9 @@ class GameGrid(Frame):
                     )
         self.update_idletasks()
 
-    def key_down(self, event):
+    def key_up(self, event) -> None:
+        '''
+        '''
         key = event.keysym
         print(event)
         if key == c.KEY_QUIT:

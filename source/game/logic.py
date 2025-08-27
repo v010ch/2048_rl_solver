@@ -21,35 +21,46 @@ weight = WEIGHTS1
 def new_game(n: int) -> np.ndarray:
     '''
     Init new game
+
     args:
+        n: int - number of cells at row/columns
+
     return:
-        np.ndarray - 
+        np.ndarray - empty (zero) game state matrix
     '''
-    matrix = np.zeros((n, n), dtype=np.uint16)  # ?uint8?
+    state = np.zeros((n, n), dtype=np.uint16)  # ?uint8?
 
-    matrix = add_new(matrix)
-    matrix = add_new(matrix)
+    state = add_new(state)
+    state = add_new(state)
 
-    return matrix
+    return state
 
 
-def add_new(mat: np.ndarray) -> np.ndarray:
+def add_new(state: np.ndarray) -> np.ndarray:
     '''
-    '''
-    a = random.randint(0, mat.shape[0] - 1)
-    b = random.randint(0, mat.shape[0] - 1)
+    Add one new element (2, 4, or 8) to game state matrix.
+    Weights will be changed when max value becomes 4 or 8.
 
-    while mat[a, b] != 0:
-        a = random.randint(0, mat.shape[0] - 1)
-        b = random.randint(0, mat.shape[0] - 1)
+    args:
+        mat: np.ndarray - game state matrix
+
+    return:
+        np.ndarray - game state matrix with one new value at empty space
+    '''
+    a = random.randint(0, state.shape[0] - 1)
+    b = random.randint(0, state.shape[0] - 1)
+
+    while state[a, b] != 0:
+        a = random.randint(0, state.shape[0] - 1)
+        b = random.randint(0, state.shape[0] - 1)
 
     element = random.choices(new_entry, weight)[0]
-    mat[a, b] = element
+    state[a, b] = element
 
-    return mat
+    return state
 
 
-def game_state(mat: np.ndarray) -> str:
+def game_state(state: np.ndarray) -> str:
     '''
     '''
     # check for win cell
@@ -57,7 +68,7 @@ def game_state(mat: np.ndarray) -> str:
     #     for j in range(mat.shape[0]):
     #         if mat[i, j] == 2048:
     #             return 'win'
-    if mat.max() >= 2048:
+    if state.max() >= 2048:
         return 'win'
 
     # check for any zero entries
@@ -65,54 +76,30 @@ def game_state(mat: np.ndarray) -> str:
     #    for j in range(mat.shape[0]):
     #        if mat[i, j] == 0:
     #            return 'not over'
-    nz = np.count_nonzero(mat)
+    nz = np.count_nonzero(state)
     if nz != c.MAX_EL:
         return 'not over'
 
     # check for same cells that touch each other
-    for i in range(len(mat)-1):
+    for i in range(len(state)-1):
         # intentionally reduced to check the row on the right and below
         # more elegant to use exceptions but most likely this will be their solution
-        for j in range(len(mat[0])-1):
-            if mat[i, j] == mat[i+1, j] or mat[i, j+1] == mat[i, j]:
+        for j in range(len(state[0])-1):
+            if state[i, j] == state[i+1, j] or state[i, j+1] == state[i, j]:
                 return 'not over'
 
-    for k in range(len(mat)-1):  # to check the left/right entries on the last row
-        if mat[len(mat)-1, k] == mat[len(mat)-1, k+1]:
+    for k in range(len(state)-1):  # to check the left/right entries on the last row
+        if state[len(state)-1, k] == state[len(state)-1, k+1]:
             return 'not over'
 
-    for j in range(len(mat)-1):  # check up/down entries on last column
-        if mat[j, len(mat)-1] == mat[j+1, len(mat)-1]:
+    for j in range(len(state)-1):  # check up/down entries on last column
+        if state[j, len(state)-1] == state[j+1, len(state)-1]:
             return 'not over'
 
     return 'lose'
 
 
-def reverse_old(mat: np.ndarray) -> np.ndarray:
-    '''
-    '''
-    new = []
-    for i in range(len(mat)):
-        new.append([])
-        for j in range(len(mat[0])):
-            new[i].append(mat[i][len(mat[0])-j-1])
-
-    return new
-
-
-def transpose_old(mat: np.ndarray) -> np.ndarray:
-    '''
-    '''
-    new = []
-    for i in range(len(mat[0])):
-        new.append([])
-        for j in range(len(mat)):
-            new[i].append(mat[j][i])
-
-    return new
-
-
-def cover_up(mat: np.ndarray):
+def cover_up(state: np.ndarray):
     '''
     '''
     # new = []
@@ -121,14 +108,14 @@ def cover_up(mat: np.ndarray):
     #     for i in range(c.GRID_LEN):
     #         partial_new.append(0)
     #     new.append(partial_new)
-    new = np.zeros((4, 4), dtype=np.uint16)
+    new = np.zeros((c.GRID_LEN, c.GRID_LEN), dtype=np.uint16)
 
     done = False
     for i in range(c.GRID_LEN):
         count = 0
         for j in range(c.GRID_LEN):
-            if mat[i, j] != 0:
-                new[i, count] = mat[i, j]
+            if state[i, j] != 0:
+                new[i, count] = state[i, j]
                 if j != count:
                     done = True
                 count += 1
@@ -136,74 +123,107 @@ def cover_up(mat: np.ndarray):
     return new, done
 
 
-def merge(mat: np.ndarray, done):
+def merge(state: np.ndarray, done) -> tuple[np.ndarray, bool]:
     '''
+    Merge cells if possible
+
+    args:
+        mat: np.ndarray - game state matrix
+
+    return:
+        Tuple:
+            np.ndarray - game state matrix
+            bool
     '''
     for i in range(c.GRID_LEN):
         for j in range(c.GRID_LEN-1):
-            if mat[i, j] == mat[i, j+1] and mat[i, j] != 0:
-                mat[i, j] *= 2
-                mat[i, j+1] = 0
+            if state[i, j] == state[i, j+1] and state[i, j] != 0:
+                state[i, j] *= 2
+                state[i, j+1] = 0
                 done = True
 
-    return mat, done
+    return state, done
 
 
-def up(game):
+def up(state: np.ndarray) -> tuple[np.ndarray, bool]:
     '''
+    Up key event handler. Shift values up and merge them if possible.
+
+    args:
+        state: np.ndarray - current game state
+
+    return:
+        np.ndarray - new game state
     '''
-    print("up")
-    # return matrix after shifting up
+    # print("up")
     #game = transpose(game)
-    game = np.transpose(game)
-    game, done = cover_up(game)
-    game, done = merge(game, done)
-    game = cover_up(game)[0]
+    state = np.transpose(state)
+    state, done = cover_up(state)
+    state, done = merge(state, done)
+    state = cover_up(state)[0]
     #game = transpose(game)
-    game = np.transpose(game)
+    state = np.transpose(state)
 
-    return game, done
+    return state, done
 
 
-def down(game):
+def down(state: np.ndarray) -> tuple[np.ndarray, bool]:
     '''
+    Down key event handler. Shift values down and merge them if possible.
+
+    args:
+        state: np.ndarray - current game state
+
+    return:
+        np.ndarray - new game state
     '''
-    print("down")
-    # return matrix after shifting down
+    # print("down")
     #game = reverse(transpose(game))
-    game = np.flip(np.transpose(game), axis=1)
-    game, done = cover_up(game)
-    game, done = merge(game, done)
-    game = cover_up(game)[0]
+    state = np.flip(np.transpose(state), axis=1)
+    state, done = cover_up(state)
+    state, done = merge(state, done)
+    state = cover_up(state)[0]
     #game = transpose(reverse(game))
-    game = np.transpose(np.flip(game, axis=1))
+    state = np.transpose(np.flip(state, axis=1))
 
-    return game, done
+    return state, done
 
 
-def left(game):
+def left(state: np.ndarray) -> tuple[np.ndarray, bool]:
     '''
-    '''
-    print("left")
-    # return matrix after shifting left
-    game, done = cover_up(game)
-    game, done = merge(game, done)
-    game = cover_up(game)[0]
+    Left key event handler. Shift values left and merge them if possible.
 
-    return game, done
+    args:
+        state: np.ndarray - current game state
+
+    return:
+        np.ndarray - new game state
+    '''
+    # print("left")
+    state, done = cover_up(state)
+    state, done = merge(state, done)
+    state = cover_up(state)[0]
+
+    return state, done
 
 
-def right(game):
+def right(state: np.ndarray) -> tuple[np.ndarray, bool]:
     '''
+    Right key event handler. Shift values right and merge them if possible.
+
+    args:
+        state: np.ndarray - current game state
+
+    return:
+        np.ndarray - new game state
     '''
-    print("right")
-    # return matrix after shifting right
+    # print("right")
     #game = reverse(game)
-    game = np.flip(game, axis=1)
-    game, done = cover_up(game)
-    game, done = merge(game, done)
-    game = cover_up(game)[0]
+    state = np.flip(state, axis=1)
+    state, done = cover_up(state)
+    state, done = merge(state, done)
+    state = cover_up(state)[0]
     #game = reverse(game)
-    game = np.flip(game, axis=1)
+    state = np.flip(state, axis=1)
 
-    return game, done
+    return state, done
