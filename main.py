@@ -16,15 +16,17 @@ import source.game.interface as interface
 
 if __name__ == '__main__':
 
+    print('starting')
     # game_grid = GameGrid()
     # game_grid.mainloop()
 
     logc = logic.Game2048Logic()
-    interfc = interface.Game2048Interface()
+#     interfc = interface.Game2048Interface()
 
-    interfc.mainloop()
+    # interfc.mainloop()
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         pool1 = executor.submit(logc.run)
         time.sleep(1)
-        pool2 = executor.submit(interfc.run)
+        interfc = interface.Game2048Interface()
+        pool2 = executor.submit(interfc.mainloop())

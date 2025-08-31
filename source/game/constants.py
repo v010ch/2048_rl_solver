@@ -1,7 +1,7 @@
 '''
 '''
 ADDR = '127.0.0.1'
-PORT = 9993
+PORT = 9093
 
 SIZE = 400
 GRID_LEN = 4

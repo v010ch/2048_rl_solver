@@ -42,16 +42,16 @@ class Game2048Interface(Frame):
         self.grid_cells = []
         self.init_grid()
 
+        # establishing connection with server
+        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__socket.connect((c.ADDR, c.PORT))
 
-    def run(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((c.ADDR, c.PORT))
+        self.__state = self.__get_new_state()
+        self.__update_grid_cells()
 
-            for idx in range(50):
-                print(f'{idx:02d}: this is interface')
-                time.sleep(0.5)
 
-            self.__update_grid_cells()
+    def __del__(self):
+        self.__socket.close()
 
 
     def init_grid(self) -> None:
@@ -89,6 +89,7 @@ class Game2048Interface(Frame):
                 grid_row.append(t)
             self.grid_cells.append(grid_row)
 
+
     def __update_grid_cells(self) -> None:
         '''
         '''
@@ -105,11 +106,20 @@ class Game2048Interface(Frame):
                     )
         self.update_idletasks()
 
+
     def __send_command(self, ) -> None:
-        pass
+        self.__socket.send(self.__command.encode())
+
 
     def __get_new_state(self, ) -> np.ndarray:
-        return 0
+        # get packet size
+        size = self.__socket.recv()
+        size = int(size.decode())
+        # get new state
+        tmp = self.__socket.recv(size)
+
+        return tmp.decode()
+
 
     def key_up(self, event) -> None:
         '''
@@ -125,7 +135,8 @@ class Game2048Interface(Frame):
         #    print('back on step total step:', len(self.history_matrixs))
         # el
         if key in self.commands:
-            self.__state, done = self.commands[key]()
+            # self.__state, done = self.commands[key]()
+            done = self.commands[key]()
             if done:
                 # record last move
                 # self.history_matrixs.append(self.state)
@@ -136,6 +147,7 @@ class Game2048Interface(Frame):
                 if logic.game_state(self.__state) == 'lose':
                     self.grid_cells[1][1].configure(text="You", bg=c.BG_COLOR_CELL_EMPTY)
                     self.grid_cells[1][2].configure(text="Lose!", bg=c.BG_COLOR_CELL_EMPTY)
+
 
     def __up(self) -> None:
         '''
@@ -148,11 +160,11 @@ class Game2048Interface(Frame):
             np.ndarray - new game state
         '''
         # print("up")
-        self.__command = 'up'
+        self.__command = 'up___'
         self.__send_command()
-        state = self.__get_new_state()
+        self.__state = self.__get_new_state()
 
-        return state
+        return True
 
 
     def __down(self) -> None:
@@ -166,11 +178,11 @@ class Game2048Interface(Frame):
             np.ndarray - new game state
         '''
         # print("down")
-        self.__command = 'down'
+        self.__command = 'down_'
         self.__send_command()
-        state = self.__get_new_state()
+        self.__state = self.__get_new_state()
 
-        return state
+        return True
 
 
     def __left(self) -> None:
@@ -184,11 +196,11 @@ class Game2048Interface(Frame):
             np.ndarray - new game state
         '''
         # print("left")
-        self.__command = 'left'
+        self.__command = 'left_'
         self.__send_command()
-        state = self.__get_new_state()
+        self.__state = self.__get_new_state()
 
-        return state
+        return True
 
 
     def __right(self) -> None:
@@ -204,9 +216,9 @@ class Game2048Interface(Frame):
         # print("right")
         self.__command = 'right'
         self.__send_command()
-        state = self.__get_new_state()
+        self.__state = self.__get_new_state()
 
-        return state
+        return True
 
 
 
