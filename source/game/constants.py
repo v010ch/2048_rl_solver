@@ -53,8 +53,9 @@ CELL_COLOR_DICT = {
 
 FONT = ("Verdana", 40, "bold")
 
+KEY_NEW = 'n'
 KEY_QUIT = "Escape"
-KEY_BACK = "b"
+# KEY_BACK = "b"
 
 KEY_UP = "Up"
 KEY_DOWN = "Down"

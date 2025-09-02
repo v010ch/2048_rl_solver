@@ -45,6 +45,7 @@ class Game2048Interface(Frame):
             c.KEY_LEFT_ALT1: self.__left,
             c.KEY_RIGHT_ALT1: self.__right,
 
+            c.KEY_NEW: self.__new_game,
             c.KEY_QUIT: self.__exit,
         }
 
@@ -53,7 +54,7 @@ class Game2048Interface(Frame):
 
         self.__state = self.__get_new_state()
         self.__update_grid_cells()
-        print(self.__state)
+        # print(self.__state)
 
 
     def __del__(self):
@@ -128,7 +129,7 @@ class Game2048Interface(Frame):
         return:
             np.ndarray - new game state
         '''
-        print(f'getting {c.STATE_PACK_SIZE[self.__GRID_SIZE]}')
+        # print(f'getting {c.STATE_PACK_SIZE[self.__GRID_SIZE]}')
         tmp = self.__socket.recv(c.STATE_PACK_SIZE[self.__GRID_SIZE])
         tmp = np.frombuffer(tmp, dtype=np.uint16)\
                 .reshape((self.__GRID_SIZE, self.__GRID_SIZE))
@@ -141,7 +142,7 @@ class Game2048Interface(Frame):
         Handler for key_up events.
         '''
         key = event.keysym
-        print(event)
+        # print(event)
         if key == c.KEY_QUIT:
             self.__state = self.commands[key]()
             exit()
@@ -223,6 +224,20 @@ class Game2048Interface(Frame):
         '''
         # print("right")
         self.__command = 'right'
+        self.__send_command()
+        state = self.__get_new_state()
+
+        return state
+
+
+    def __new_game(self) -> np.ndarray:
+        '''
+        N key event handler. New game command.
+
+        return:
+            np.ndarray - new game state
+        '''
+        self.__command = 'new__'
         self.__send_command()
         state = self.__get_new_state()
 

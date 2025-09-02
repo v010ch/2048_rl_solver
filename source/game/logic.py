@@ -73,15 +73,15 @@ class Game2048Logic():
         '''
         Send state to consumer (interface/solver)
         '''
-        print(self.__state)
+        # print(self.__state)
         tmp = self.__state.tostring()
-        print(f'sending {len(tmp)}')
+        # print(f'sending {len(tmp)}')
         self.__conn.send(tmp)
 
 
     def __execute_command(self, cmd: str) -> None:
         '''
-        Execute recived command/
+        Execute recived command.
         '''
         if cmd == 'up___':
             self.__state, done = self.__up(self.__state)
@@ -99,15 +99,16 @@ class Game2048Logic():
             self.__state, done = self.__right(self.__state)
             return done
 
+        # if return True - one more new element will иу added
         if cmd == 'new__':
             self.__state = self.__new_game(self.__grid_size)
-            return True
+            return False
 
         if cmd == 'exit_':
             self.__exit = True
-            return True
+            return False
 
-        return -1
+        return False
 
 
     def __new_game(self, n: int) -> np.ndarray:
@@ -215,7 +216,8 @@ class Game2048Logic():
         state = self.__cover_up(state)[0]
         state = np.transpose(state)
 
-        return state, (done_c and done_m)
+        # return state, (done_c and done_m)
+        return state, (done_c or done_m)
 
 
     def __down(self, state: np.ndarray) -> tuple[np.ndarray, bool]:
@@ -236,7 +238,8 @@ class Game2048Logic():
         state = self.__cover_up(state)[0]
         state = np.transpose(np.flip(state, axis=1))
 
-        return state, (done_c and done_m)
+        # return state, (done_c and done_m)
+        return state, (done_c or done_m)
 
 
     def __left(self, state: np.ndarray) -> tuple[np.ndarray, bool]:
@@ -255,7 +258,8 @@ class Game2048Logic():
         state, done_m = self.__merge(state)
         state = self.__cover_up(state)[0]
 
-        return state, (done_c and done_m)
+        # return state, (done_c and done_m)
+        return state, (done_c or done_m)
 
 
     def __right(self, state: np.ndarray) -> tuple[np.ndarray, bool]:
@@ -276,4 +280,5 @@ class Game2048Logic():
         state = self.__cover_up(state)[0]
         state = np.flip(state, axis=1)
 
-        return state, (done_c and done_m)
+        # return state, (done_c and done_m)
+        return state, (done_c or done_m)
