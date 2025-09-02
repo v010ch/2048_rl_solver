@@ -98,6 +98,7 @@ class Game2048Interface(Frame):
 
     def __update_grid_cells(self) -> None:
         '''
+        Update grid cells of interface with current values.
         '''
         for i in range(self.__GRID_SIZE):
             for j in range(self.__GRID_SIZE):
@@ -114,11 +115,18 @@ class Game2048Interface(Frame):
 
 
     def __send_command(self, ) -> None:
+        '''
+        Send command to server (logic)
+        '''
         self.__socket.send(self.__command.encode())
 
 
     def __get_new_state(self, ) -> np.ndarray:
         '''
+        Get new game state from server (logic)
+
+        return:
+            np.ndarray - new game state
         '''
         print(f'getting {c.STATE_PACK_SIZE[self.__GRID_SIZE]}')
         tmp = self.__socket.recv(c.STATE_PACK_SIZE[self.__GRID_SIZE])
@@ -130,11 +138,12 @@ class Game2048Interface(Frame):
 
     def key_up(self, event) -> None:
         '''
+        Handler for key_up events.
         '''
         key = event.keysym
         print(event)
         if key == c.KEY_QUIT:
-            done = self.commands[key]()
+            self.__state = self.commands[key]()
             exit()
 
         # if key == c.KEY_BACK and len(self.history_matrixs) > 1:
@@ -144,7 +153,7 @@ class Game2048Interface(Frame):
         # el
         if key in self.commands:
             # self.__state, done = self.commands[key]()
-            done = self.commands[key]()
+            self.__state = self.commands[key]()
             self.__update_grid_cells()
 
             # if done:
@@ -160,12 +169,9 @@ class Game2048Interface(Frame):
                     self.grid_cells[1][2].configure(text="Lose!", bg=c.BG_COLOR_CELL_EMPTY)
 
 
-    def __up(self) -> None:
+    def __up(self) -> np.ndarray:
         '''
         Up key event handler. Shift values up and merge them if possible.
-
-        args:
-            state: np.ndarray - current game state
 
         return:
             np.ndarray - new game state
@@ -173,17 +179,14 @@ class Game2048Interface(Frame):
         # print("up")
         self.__command = 'up___'
         self.__send_command()
-        self.__state = self.__get_new_state()
+        state = self.__get_new_state()
 
-        return True
+        return state
 
 
-    def __down(self) -> None:
+    def __down(self) -> np.ndarray:
         '''
         Down key event handler. Shift values down and merge them if possible.
-
-        args:
-            state: np.ndarray - current game state
 
         return:
             np.ndarray - new game state
@@ -191,17 +194,14 @@ class Game2048Interface(Frame):
         # print("down")
         self.__command = 'down_'
         self.__send_command()
-        self.__state = self.__get_new_state()
+        state = self.__get_new_state()
 
-        return True
+        return state
 
 
-    def __left(self) -> None:
+    def __left(self) -> np.ndarray:
         '''
         Left key event handler. Shift values left and merge them if possible.
-
-        args:
-            state: np.ndarray - current game state
 
         return:
             np.ndarray - new game state
@@ -209,17 +209,14 @@ class Game2048Interface(Frame):
         # print("left")
         self.__command = 'left_'
         self.__send_command()
-        self.__state = self.__get_new_state()
+        state = self.__get_new_state()
 
-        return True
+        return state
 
 
-    def __right(self) -> None:
+    def __right(self) -> np.ndarray:
         '''
         Right key event handler. Shift values right and merge them if possible.
-
-        args:
-            state: np.ndarray - current game state
 
         return:
             np.ndarray - new game state
@@ -227,13 +224,16 @@ class Game2048Interface(Frame):
         # print("right")
         self.__command = 'right'
         self.__send_command()
-        self.__state = self.__get_new_state()
+        state = self.__get_new_state()
 
-        return True
+        return state
 
-    def __exit(self) -> None:
+
+    def __exit(self) -> np.ndarray:
         '''
         Escape key event handler. End of the program.
         '''
         self.__command = 'exit_'
         self.__send_command()
+
+        return np.zeros_like(self.__state)
