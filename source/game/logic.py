@@ -83,6 +83,7 @@ class Game2048Logic():
         '''
         Execute recived command.
         '''
+        print(cmd)
         if cmd == 'up___':
             self.__state, done = self.__up(self.__state)
             return done

@@ -31,7 +31,9 @@ class Game2048Interface(Frame):
         self.master.title('2048')
         # self.master.bind("<Key>", self.key_down)
         self.master.bind("<KeyRelease>", self.key_up)
-        self.__state = np.zeros((self.__GRID_SIZE, self.__GRID_SIZE))
+        self.__state = np.zeros((self.__GRID_SIZE, self.__GRID_SIZE),
+                                dtype=np.int16,
+                                )
         # self.history_matrixs = []
 
         # set up methoda for key release event handler
