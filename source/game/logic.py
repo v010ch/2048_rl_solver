@@ -12,12 +12,17 @@ import constants as c
 
 NEW_VALS = [2, 4, 8]
 WEIGHTS2 = [1.0, 0.0, 0.0]
-WEIGHTS4 = [0.65, 0.35, 0.0]
-WEIGHTS8 = [0.65, 0.3, 0.05]
+WEIGHTS4 = [0.85, 0.15, 0.0]
+WEIGHTS8 = [0.75, 0.20, 0.05]
 
 
 class Game2048Logic():
-    def __init__(self, size: Optional[int] = c.GRID_LEN):
+    def __init__(self,
+                 size: Optional[int] = c.GRID_LEN,
+                 state: Optional[int] = None,
+                 ):
+        '''
+        '''
         self.__weights = WEIGHTS2
         self.__cur_max = 2
         self.__conn = None
@@ -28,12 +33,16 @@ class Game2048Logic():
         self.__grid_size = size
 
         # create new game
-        self.__state = np.zeros((self.__grid_size, self.__grid_size),
-                                dtype=np.uint16
-                                )
-        self.__state = self.__new_game(self.__grid_size)
+        if isinstance(state, type(None)):
+            self.__state = np.zeros((self.__grid_size, self.__grid_size),
+                                    dtype=np.uint16,
+                                    )
+            self.__state = self.__new_game(self.__grid_size)
+        else:
+            self.__state = state
 
         # command to exit main loop
+        print(self.__state)
         self.__exit = False
 
 
@@ -42,6 +51,7 @@ class Game2048Logic():
         Logic (server) main loop
         '''
         print('run logic')
+        print(self.__state)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((c.ADDR, c.PORT))
             print('server logic await connection')
@@ -122,6 +132,8 @@ class Game2048Logic():
         return:
             np.ndarray - new game state matrix with only two init values
         '''
+        print('logic: new')
+
         self.__weights = WEIGHTS2
         self.__cur_max = 2
 
@@ -199,6 +211,25 @@ class Game2048Logic():
         return state, done
 
 
+    def __update_weights(self, state: np.ndarray) -> tuple[int, list[float]]:
+        '''
+        Update weights
+        args:
+            state: np.ndarray - current game state
+        return:
+            int - current game state max
+            list[float] - new weights
+        '''
+        cur_max = 4
+        weights = WEIGHTS4
+
+        if state.max() >= 8:
+            cur_max = 8
+            weights = WEIGHTS8
+
+        return cur_max, weights
+
+
     def __up(self, state: np.ndarray) -> tuple[np.ndarray, bool]:
         '''
         Up key event handler. Shift values up and merge them if possible.
@@ -210,12 +241,16 @@ class Game2048Logic():
             np.ndarray - new game state
             bool - True - if game not ended
         '''
-        # print('logic: up')
+        print('logic: up')
         state = np.transpose(state)
         state, done_c = self.__cover_up(state)
         state, done_m = self.__merge(state)
         state = self.__cover_up(state)[0]
         state = np.transpose(state)
+
+        if self.__cur_max < 8 and done_m:
+            self.__cur_max, self.__weights = \
+                self.__update_weights(self.__state)
 
         # return state, (done_c and done_m)
         return state, (done_c or done_m)
@@ -232,11 +267,16 @@ class Game2048Logic():
             np.ndarray - new game state
             bool - True - if game not ended
         '''
-        # print('logic: down')
+        print('logic: down')
         state = np.flip(np.transpose(state), axis=1)
         state, done_c = self.__cover_up(state)
         state, done_m = self.__merge(state)
         state = self.__cover_up(state)[0]
+
+        if self.__cur_max < 8 and done_m:
+            self.__cur_max, self.__weights = \
+                self.__update_weights(self.__state)
+
         state = np.transpose(np.flip(state, axis=1))
 
         # return state, (done_c and done_m)
@@ -254,9 +294,14 @@ class Game2048Logic():
             np.ndarray - new game state
             bool - True - if game not ended
         '''
-        # print('logic: left')
+        print('logic: left')
         state, done_c = self.__cover_up(state)
         state, done_m = self.__merge(state)
+
+        if self.__cur_max < 8 and done_m:
+            self.__cur_max, self.__weights = \
+                self.__update_weights(self.__state)
+
         state = self.__cover_up(state)[0]
 
         # return state, (done_c and done_m)
@@ -274,12 +319,16 @@ class Game2048Logic():
             np.ndarray - new game state
             bool - True - if game not ended
         '''
-        # print('logic: right')
+        print('logic: right')
         state = np.flip(state, axis=1)
         state, done_c = self.__cover_up(state)
         state, done_m = self.__merge(state)
         state = self.__cover_up(state)[0]
         state = np.flip(state, axis=1)
+
+        if self.__cur_max < 8 and done_m:
+            self.__cur_max, self.__weights = \
+                self.__update_weights(self.__state)
 
         # return state, (done_c and done_m)
         return state, (done_c or done_m)

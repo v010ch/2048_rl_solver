@@ -1,6 +1,8 @@
 '''
 '''
+import random
 import socket
+
 
 import numpy as np
 from torch import nn
@@ -35,7 +37,8 @@ class SolverClass(nn.Module):
     def forward(self, state: np.ndarray) -> np.ndarray:
         '''
         '''
-        return np.ndarray([0.1, 0.2, 0.2, 0.5])
+        print('forward')
+        return np.array([0.25, 0.25, 0.25, 0.25])
 
 
     def train(self):
@@ -47,9 +50,11 @@ class SolverClass(nn.Module):
     def make_move(self, state: np.ndarray) -> str:
         '''
         '''
+        print('in make move')
         vals = self.forward(state)
-
-        return DIRECTIONS[vals.argmax()]
+        print(vals)
+        # return DIRECTIONS[vals.argmax()]
+        return random.choices(list(DIRECTIONS.values()), vals)
 
 
     def run(self):
@@ -71,9 +76,11 @@ class SolverClass(nn.Module):
     def __get_state(self) -> np.ndarray:
         '''
         '''
-        state = self.__socket.recv(STATE_PACK_SIZE[self.__GRID_SIZE])
+        tmp = self.__socket.recv(STATE_PACK_SIZE[self.__GRID_SIZE])
+        tmp = np.frombuffer(tmp, dtype=np.uint16)\
+                .reshape((self.__GRID_SIZE, self.__GRID_SIZE))
         # decode from string
-        return state
+        return tmp
 
 
     def __calculate_reward(self, state: np.ndarray) -> int:
@@ -87,6 +94,7 @@ class SolverClass(nn.Module):
         '''
         print('solver mainloop')
 
+        epoch = 2
         state = self.__get_state()
 
         # for idx in range(50):
@@ -95,7 +103,17 @@ class SolverClass(nn.Module):
 
         while not self.__exit:
             # send comand
-            self.__socket.send('exit_'.encode())
+            command = 'new__'
+            for idx in range(epoch):
+                print(f'Epoch: {idx}')
+
+                self.__socket.send(command.encode())
+                print('command send')
+                state = self.__get_state()
+                print(f'getting state: {state}')
+                command = self.make_move(state)
+                print(f'make move {command}')
+
 
             self.__exit = True
 
@@ -106,5 +124,5 @@ class SolverClass(nn.Module):
             #self.__send_state()
             # self.__exit = True
 
+        self.__socket.send('exit_'.encode())
         print('solver: end of the main loop')
-
